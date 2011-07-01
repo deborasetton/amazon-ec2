@@ -13,7 +13,7 @@ module AWS
       DEFAULT_HOST = 'autoscaling.amazonaws.com'
     end
 
-    API_VERSION = '2009-05-15'
+    API_VERSION = '2010-08-01'
 
     class Base < AWS::Base
       def api_version

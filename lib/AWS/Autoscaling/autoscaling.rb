@@ -268,6 +268,44 @@ module AWS
         return response_generator(:action => "UpdateAutoScalingGroup", :params => params)
 
       end
+      
+      # Suspends all scaling processes for an auto scaling group.
+      #
+      # @option options [String] :autoscaling_group_name (nil) the name of the autoscaling group
+      # @option options [Array] :scaling_processes (nil) the processes to suspend, which can include one or more of the following:
+      # => Launch, Terminate, HealthCheck, ReplaceUnhealthy, AZRebalance, AlarmNotificatins, ScheduledActions.
+      # => To suspend all process types, omit this parameter.
+      #
+      def suspend_processes( options = {})
+        raise ArgumentError, "No :autoscaling_group_name provided" if options[:autoscaling_group_name].nil? || options[:autoscaling_group_name].empty?
+        
+        params = {}
+        
+        params['AutoScalingGroupName'] = options[:autoscaling_group_name]
+        params.merge!(pathlist('ScalingProcesses.member', [options[:scaling_processes]].flatten)) if options.has_key?(:scaling_processes)
+        
+        return response_generator(:action => 'SuspendProcesses', :params => params)
+        
+      end
+      
+      # Resumes Auto Scaling processes for an Auto Scaling group.
+      #
+      # @option options [String] :autoscaling_group_name (nil) the name of the autoscaling group
+      # @option options [Array] :scaling_processes (nil) the processes to resume, which can include one or more of the following:
+      # => Launch, Terminate, HealthCheck, ReplaceUnhealthy, AZRebalance, AlarmNotificatins, ScheduledActions.
+      # => To resume all process types, omit this parameter.
+      #
+      def resume_processes( options = {})
+         raise ArgumentError, "No :autoscaling_group_name provided" if options[:autoscaling_group_name].nil? || options[:autoscaling_group_name].empty?
+
+          params = {}
+
+          params['AutoScalingGroupName'] = options[:autoscaling_group_name]
+          params.merge!(pathlist('ScalingProcesses.member', [options[:scaling_processes]].flatten)) if options.has_key?(:scaling_processes)
+
+          return response_generator(:action => 'ResumeProcesses', :params => params)
+        
+      end
 
     end
   end

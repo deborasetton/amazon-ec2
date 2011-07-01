@@ -86,6 +86,111 @@ module AWS
         return response_generator(:action => 'GetMetricStatistics', :params => params)
 
       end
+      
+      # Deletes all specified alarms. In the event of an error, no alarms are deleted.
+      #
+      # @option options [Array] :alarm_names (nil) a list of alarms to be deleted. 
+      def delete_alarms( options={})
+        raise ArgumentError, "No :alarm_names provided" if options[:alarm_names].nil? || options[:alarm_names].empty?
+        
+        params ={}
+        
+        params.merge!(pathlist('AlarmNames.member', options[:alarm_names].flatten)) 
+        
+        return response_generator(:action => 'DeleteAlarms', :params => params)
+        
+      end
+      
+      # Creates or updates an alarm and associates it with the specified Amazon CloudWatch metric. 
+      # Optionally, this operation can associate one or more Amazon Simple Notification Service resources with the alarm.
+      #
+      # @option options [optional, Boolean] :actions_enabled (false) indicates whether or not actions should be executed during any changes to the alarm's state.
+      # @option options [optional, Array] :alarm_actions (nil) the list of actions to execute when this alarm transitions into an ALARM state from any other state. Each action is specified as an Amazon Resource Number (ARN). 
+      # @option options [optional, String] :alarm_description (nil) the description for the alarm.
+      # @option options [String] :alarm_name (nil) the descriptive name for the alarm. This name must be unique within the user's AWS account.
+      # @option options [String] :comparison_operator (nil) the arithmetic operation to use when comparing the specified 
+      # => Statistic and Threshold. Valid Values: GreaterThanOrEqualToThreshold | GreaterThanThreshold | LessThanThreshold | LessThanOrEqualToThreshold
+      # @option options [optional, Array] :dimensions (nil) the dimensions for the alarm's associated metric.
+      # @option options [Integer] :evaluation_periods (nil) the number of periods over which data is compared to the specified threshold.
+      # @option options [optional, Array] :insufficient_data_actions (nil) the list of actions to execute when this alarm transitions into an INSUFFICIENT_DATA state from any other state.
+      # @option options [String] :metric_name (nil) the name for the alarm's associated metric.
+      # @option options [String] :namespace (nil) the namespace for the alarm's associated metric.
+      # @option options [optional, Array] :ok_actions (nil) the list of actions to execute when this alarm transitions into an OK state from any other state.
+      # @option options [Integer] :period (nil) the period in seconds over which the specified statistic is applied.
+      # @option options [String] :statistic (nil) the statistic to apply to the alarm's associated metric.
+      # => Valid Values: SampleCount | Average | Sum | Minimum | Maximum
+      # @option options [Double] :threshold (nil) the value against which the specified statistic is compared.
+      # @option options [optional, String] :unit (nil) the unit for the alarm's associated metric.
+      # => Valid Values: Seconds | Microseconds | Milliseconds | Bytes | Kilobytes | Megabytes | Gigabytes | Terabytes | 
+      # => Bits | Kilobits | Megabits | Gigabits | Terabits | Percent | Count | Bytes/Second | Kilobytes/Second | 
+      # => Megabytes/Second | Gigabytes/Second | Terabytes/Second | Bits/Second | Kilobits/Second | Megabits/Second | 
+      # => Gigabits/Second | Terabits/Second | Count/Second | None 
+      def put_metric_alarm( options={})
+        #raise ArgumentError, ":alarm_name must be provided" if options[:alarm_name].nil? || options[:alarm_name].empty?
+        #raise ArgumentError, ":comparison_operator must be provided" if options[:comparison_operator].nil? || options[:comparison_operator].empty?
+        #raise ArgumentError, ":evaluation_periods must be provided" if options[:evaluation_periods].nil?
+        #raise ArgumentError, ":metric_name must be provided" if options[:metric_name].nil? || options[:metric_name].empty?
+        #raise ArgumentError, ":namespace must be provided" if options[:namespace].nil? || options[:namespace].empty?
+        #raise ArgumentError, ":period must be provided" if options[:period].nil?
+        #raise ArgumentError, ":statistic must be provided" if options[:statistic].nil? || options[:statistic].empty?
+        #raise ArgumentError, ":statistic value is invalid" if not valid_statistic_values.index(options[:statistic])
+        #raise ArgumentError, ":threshold must be provided" if options[:threshold].nil?        
+        #raise ArgumentError, ":unit value is invalid" if ((not options[:unit].nil?) and (not valid_unit_values.index(options[:unit])))        
+       
+        params = {
+                    'AlarmName' => options[:alarm_name],
+                    'ComparisonOperator' => options[:comparison_operator],
+                    'EvaluationPeriods' => options[:evaluation_periods].to_s,
+                    'MetricName' => options[:metric_name],
+                    'Namespace' => options[:namespace],
+                    'Period' => options[:period].to_s,
+                    'Statistic' => options[:statistic],
+                    'Threshold' => options[:threshold].to_s
+        }
+        
+        # Optional parameters
+        
+        params['Force'] = options[:force].to_s unless options[:force].nil?
+        params.merge!(pathlist('AlarmActions.member', [options[:alarm_actions]].flatten)) if options.has_key?(:alarm_actions)
+        params['AlarmDescription'] = options[:alarm_description] if options.has_key?(:alarm_description)
+        params.merge!(pathlist('InsufficientDataActions.member', [options[:insufficient_data_actions]].flatten)) if options.has_key?(:insufficient_data_actions)
+        params.merge!(pathlist('OKActions.member', [options[:ok_actions]].flatten)) if options.has_key?(:ok_actions)
+        
+       if !(options[:dimensions].nil? || options[:dimensions].empty?)
+          dims_params = {}
+          i = 1
+          options[:dimensions].each{ |dimension|
+            dimension_var = dimension.split('=')
+            dims_params = dims_params.merge!( "Dimensions.member.#{i}.Name" => "#{dimension_var[0]}", "Dimensions.member.#{i}.Value" => "#{dimension_var[1]}" )
+            i += 1
+          }
+          params.merge!( dims_params )
+        end
+        
+        return response_generator(:action => 'PutMetricAlarm', :params => params)
+        
+      end
+      
+      # PRIVATE METHODS
+      private
+      
+      #
+      # Returns all valid values for the Statistic parameter used by various AWS methods.
+      #
+      def valid_statistic_values
+        ['SampleCount', 'Average', 'Sum', 'Minimum', 'Maximum']
+      end
+      
+      #
+      # Returns all valid values for the Unit parameter used by various AWS methods.
+      #
+      def valid_unit_values
+        ["Seconds", "Microseconds", "Milliseconds", "Bytes", "Kilobytes", "Megabytes", 
+          "Gigabytes", "Terabytes", "Bits", "Kilobits", "Megabits", "Gigabits", "Terabits", 
+          "Percent", "Count", "Bytes/Second", "Kilobytes/Second", "Megabytes/Second", "Gigabytes/Second", 
+          "Terabytes/Second", "Bits/Second", "Kilobits/Second", "Megabits/Second", "Gigabits/Second", "Terabits/Second", 
+          "Count/Second", "None"]
+      end
 
     end
 
